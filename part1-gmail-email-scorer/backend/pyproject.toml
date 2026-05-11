@@ -1,0 +1,37 @@
+[project]
+name = "email-scorer-backend"
+version = "0.1.0"
+description = "Backend for the Upwind home-assignment Gmail Add-on email scorer."
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.100.0",
+    "fastapi>=0.136.1",
+    "google-auth>=2.52.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.1",
+    "python-dotenv>=1.2.2",
+    "sqlmodel>=0.0.38",
+    "uvicorn[standard]>=0.46.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.12",
+]

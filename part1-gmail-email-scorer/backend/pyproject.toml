@@ -5,11 +5,13 @@ description = "Backend for the Upwind home-assignment Gmail Add-on email scorer.
 requires-python = ">=3.12"
 dependencies = [
     "anthropic>=0.100.0",
+    "cachetools>=7.1.1",
     "fastapi>=0.136.1",
     "google-auth>=2.52.0",
     "httpx>=0.28.1",
     "pydantic-settings>=2.14.1",
     "python-dotenv>=1.2.2",
+    "requests>=2.34.0",
     "sqlmodel>=0.0.38",
     "uvicorn[standard]>=0.46.0",
 ]

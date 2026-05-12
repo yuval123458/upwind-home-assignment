@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.db.session import init_db
-from app.routes import blocklist, me, score
+from app.routes import blocklist, history, me, score
 
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ app = FastAPI(
 app.include_router(me.router)
 app.include_router(score.router)
 app.include_router(blocklist.router)
+app.include_router(history.router)
 
 
 @app.get("/health")

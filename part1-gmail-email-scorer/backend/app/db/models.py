@@ -28,6 +28,8 @@ class ScanHistory(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
     message_id: str = Field(index=True)
+    subject: str | None = None
+    sender: str | None = Field(default=None, index=True)
     score: int
     band: str
     signals_json: str

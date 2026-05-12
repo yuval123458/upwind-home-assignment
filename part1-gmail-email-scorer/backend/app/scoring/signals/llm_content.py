@@ -57,10 +57,9 @@ async def compute(
         evidence_parts.append(", ".join(reasons))
     if obs.tactics:
         evidence_parts.append("tactics: " + ", ".join(obs.tactics))
-    evidence_parts.append(obs.summary)
 
     return Signal(
         name="llm_content",
         points=points,
-        evidence=" — ".join(evidence_parts),
+        evidence=" — ".join(evidence_parts) or "content observations only",
     )

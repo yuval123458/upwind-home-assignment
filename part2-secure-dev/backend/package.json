@@ -1,0 +1,29 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@fastify/rate-limit": "^10.0.0",
+    "argon2": "^0.43.1",
+    "better-sqlite3": "^12.4.1",
+    "fastify": "^5.5.0",
+    "fastify-type-provider-zod": "^5.0.0",
+    "shared": "*",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "@types/node": "^24.10.1",
+    "tsx": "^4.0.0",
+    "typescript": "~5.9.3"
+  }
+}

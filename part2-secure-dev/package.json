@@ -1,0 +1,11 @@
+{
+  "name": "penguwave-portal",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Upwind home assignment Part 2 — PenguWave security operations portal.",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ]
+}

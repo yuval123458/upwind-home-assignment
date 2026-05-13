@@ -90,9 +90,7 @@ Returns the list of users. Passwords must **never** be included in the response.
 
 - **Success (200):**
   ```json
-  [
-    { "id": "...", "email": "...", "role": "admin", "status": "active" }
-  ]
+  [{ "id": "...", "email": "...", "role": "admin", "status": "active" }]
   ```
 
 ### `POST /api/users`
@@ -129,6 +127,7 @@ All error responses should follow a consistent format:
 ```
 
 Common status codes:
+
 - `200` — Success
 - `201` — Created
 - `400` — Bad request / validation error

@@ -1,33 +1,31 @@
-import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
+
+import { useAuth } from "./auth-context";
 import LoginModal from "./components/LoginModal";
-import WelcomeBanner from "./components/WelcomeBanner";
+import Navbar from "./components/Navbar";
 import EventsPage from "./pages/EventsPage";
-import UsersPage from "./pages/UsersPage";
 import NotFound from "./pages/NotFound";
+import UsersPage from "./pages/UsersPage";
 
 function App() {
-  const [showLogin, setShowLogin] = useState(false);
+  const { user, loading } = useAuth();
 
-  // Show login modal on first visit
-  useEffect(() => {
-    const dismissed = sessionStorage.getItem("login-dismissed");
-    if (!dismissed) {
-      setShowLogin(true);
-    }
-  }, []);
+  if (loading) {
+    return (
+      <div style={{ padding: 40, textAlign: "center", color: "#666" }}>
+        Loading…
+      </div>
+    );
+  }
 
-  const handleCloseLogin = () => {
-    sessionStorage.setItem("login-dismissed", "true");
-    setShowLogin(false);
-  };
+  if (!user) {
+    return <LoginModal />;
+  }
 
   return (
     <>
-      <Navbar onLoginClick={() => setShowLogin(true)} />
+      <Navbar />
       <div className="container">
-        <WelcomeBanner />
         <Routes>
           <Route path="/" element={<Navigate to="/events" replace />} />
           <Route path="/events" element={<EventsPage />} />
@@ -35,7 +33,6 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
-      {showLogin && <LoginModal onClose={handleCloseLogin} />}
     </>
   );
 }

@@ -1,10 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 
-interface NavbarProps {
-  onLoginClick: () => void;
-}
+import { useAuth } from "../auth-context";
 
-export default function Navbar({ onLoginClick }: NavbarProps) {
+export default function Navbar() {
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   return (
@@ -21,14 +20,21 @@ export default function Navbar({ onLoginClick }: NavbarProps) {
         >
           Events
         </Link>
-        <Link
-          to="/users"
-          className={location.pathname === "/users" ? "active" : ""}
-        >
-          Users
-        </Link>
-        <button onClick={onLoginClick} className="navbar-login-btn">
-          Login
+        {user?.role === "admin" && (
+          <Link
+            to="/users"
+            className={location.pathname === "/users" ? "active" : ""}
+          >
+            Users
+          </Link>
+        )}
+        {user && (
+          <span style={{ fontSize: 13, color: "#666", marginLeft: 12 }}>
+            {user.email} ({user.role})
+          </span>
+        )}
+        <button onClick={() => void logout()} className="navbar-login-btn">
+          Logout
         </button>
       </div>
     </nav>

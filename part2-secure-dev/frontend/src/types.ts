@@ -14,7 +14,6 @@ export interface SecurityEvent {
 export interface User {
   id: string;
   email: string;
-  role: string;
-  status: string;
-  password: string;
+  role: "admin" | "user";
+  status: "active" | "disabled";
 }

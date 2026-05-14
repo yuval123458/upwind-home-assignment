@@ -31,22 +31,41 @@ export function toApiEvent(row: EventRow): SecurityEvent {
 }
 
 /**
- * Admin-only: returns every event regardless of owner.
+ * Admin-only: returns a paginated slice of every event regardless of owner.
  */
-export function listAllEvents(): EventRow[] {
+export function listAllEvents(limit: number, offset: number): EventRow[] {
   return db
-    .prepare("SELECT * FROM events ORDER BY timestamp DESC")
-    .all() as EventRow[];
+    .prepare("SELECT * FROM events ORDER BY timestamp DESC LIMIT ? OFFSET ?")
+    .all(limit, offset) as EventRow[];
+}
+
+export function countAllEvents(): number {
+  const row = db.prepare("SELECT COUNT(*) AS c FROM events").get() as { c: number };
+  return row.c;
 }
 
 /**
- * Per-user: returns only events owned by `userId`. This is the authz boundary
- * — non-admin callers MUST go through this function, never listAllEvents().
+ * Per-user: returns a paginated slice of events owned by `userId`. This is the
+ * authz boundary — non-admin callers MUST go through this function, never
+ * listAllEvents().
  */
-export function listEventsForUser(userId: string): EventRow[] {
+export function listEventsForUser(
+  userId: string,
+  limit: number,
+  offset: number
+): EventRow[] {
   return db
-    .prepare("SELECT * FROM events WHERE user_id = ? ORDER BY timestamp DESC")
-    .all(userId) as EventRow[];
+    .prepare(
+      "SELECT * FROM events WHERE user_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+    )
+    .all(userId, limit, offset) as EventRow[];
+}
+
+export function countEventsForUser(userId: string): number {
+  const row = db
+    .prepare("SELECT COUNT(*) AS c FROM events WHERE user_id = ?")
+    .get(userId) as { c: number };
+  return row.c;
 }
 
 /**

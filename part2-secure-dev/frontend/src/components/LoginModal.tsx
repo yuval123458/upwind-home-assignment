@@ -1,40 +1,30 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
-interface LoginModalProps {
-  onClose: () => void;
-}
+import { useAuth } from "../auth-context";
 
-export default function LoginModal({ onClose }: LoginModalProps) {
+export default function LoginModal() {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Login:", email, password);
-
-    // Try to call backend (will fail if no backend running)
-    fetch("http://localhost:3001/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        localStorage.setItem("token", data.token);
-      })
-      .catch(() => {
-        // Backend not running — just close the modal
-      });
-
-    onClose();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login(email, password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>
-          ✕
-        </button>
+    <div className="modal-backdrop">
+      <div className="modal">
         <h2>Sign In</h2>
         <p style={{ color: "#666", marginBottom: 20, fontSize: 14 }}>
           Enter your credentials to access PenguWave
@@ -47,6 +37,8 @@ export default function LoginModal({ onClose }: LoginModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
+              required
+              autoComplete="email"
             />
           </div>
           <div style={{ marginBottom: 16 }}>
@@ -56,10 +48,22 @@ export default function LoginModal({ onClose }: LoginModalProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              required
+              autoComplete="current-password"
             />
           </div>
-          <button type="submit" className="btn-primary" style={{ width: "100%" }}>
-            Sign In
+          {error && (
+            <div style={{ color: "#c00", fontSize: 13, marginBottom: 12 }}>
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{ width: "100%" }}
+            disabled={submitting}
+          >
+            {submitting ? "Signing in…" : "Sign In"}
           </button>
         </form>
       </div>

@@ -6,6 +6,7 @@ import type { FastifyInstance } from "fastify";
 import { CreateUserSchema, UpdateUserSchema } from "shared/schemas";
 
 import { requireAdmin } from "../auth.js";
+import { deleteSessionsForUser } from "../db/sessions.js";
 import {
   countActiveAdmins,
   createUser,
@@ -83,6 +84,15 @@ export default async function usersRoutes(app: FastifyInstance): Promise<void> {
       if (!updated) {
         return reply.code(404).send({ error: "User not found" });
       }
+
+      // When a user is disabled, wipe their active sessions so they're
+      // effectively logged out on next request. (Role changes are picked up
+      // automatically because requireAuth re-reads the user row on every
+      // request — no session kill needed for those.)
+      if (parsed.data.status === "disabled" && target.status === "active") {
+        deleteSessionsForUser(id);
+      }
+
       return toApiUser(updated);
     }
   );

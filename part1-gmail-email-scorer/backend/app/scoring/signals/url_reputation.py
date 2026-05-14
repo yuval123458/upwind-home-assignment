@@ -1,19 +1,28 @@
-"""URL reputation signal — looks up email URLs against VirusTotal."""
+"""URL reputation signal — looks up email URLs against VirusTotal AND Google Safe Browsing.
+
+Two independent sources:
+  - VirusTotal aggregates ~90 AV engines (multi-engine signature scan)
+  - Safe Browsing is Google's curated phishing/malware feed
+
+A URL is flagged if EITHER source reports malicious. Sources complement each
+other — Safe Browsing tends to catch fresh phishing campaigns Google has seen;
+VirusTotal catches anything in the broader AV consensus.
+"""
 
 import asyncio
 import re
 
+from app.enrichment.safe_browsing import lookup_urls as sb_lookup_urls
 from app.enrichment.virustotal import VTReport, lookup_url
 from app.scoring.schemas import Signal
 
 _URL_REGEX = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
 _TRAILING_PUNCT = ".,;:!?)\"'"
-_MAX_URLS = 5  # stay under VT free tier 4/min and keep latency bounded
+_MAX_URLS = 5
 _MAX_POINTS = 20
 
 
 def extract_urls(*texts: str | None) -> list[str]:
-    """Pull unique URLs out of the given texts, preserving first-seen order."""
     seen: set[str] = set()
     ordered: list[str] = []
     for text in texts:
@@ -35,21 +44,35 @@ async def compute(body_html: str | None, body_plain: str | None) -> Signal | Non
     if not urls:
         return None
 
-    reports = await asyncio.gather(*[lookup_url(u) for u in urls])
+    # Run VirusTotal lookups + Safe Browsing batch in parallel.
+    vt_task = asyncio.gather(*[lookup_url(u) for u in urls])
+    sb_task = sb_lookup_urls(urls)
+    vt_reports, sb_flagged = await asyncio.gather(vt_task, sb_task)
 
-    flagged: list[tuple[str, VTReport]] = [
-        (u, r) for u, r in zip(urls, reports, strict=False) if r is not None and r.is_malicious
-    ]
+    flagged: list[tuple[str, VTReport | None, str | None]] = []
+    for url, vt_report in zip(urls, vt_reports, strict=False):
+        sb_threat = sb_flagged.get(url)
+        vt_hit = vt_report is not None and vt_report.is_malicious
+        if vt_hit or sb_threat:
+            flagged.append((url, vt_report, sb_threat))
+
     if not flagged:
         return None
 
     points = min(_MAX_POINTS, len(flagged) * 10)
-    parts = [f"{u} ({r.detection_ratio} engines)" for u, r in flagged[:3]]
+    parts: list[str] = []
+    for url, vt_report, sb_threat in flagged[:3]:
+        sources: list[str] = []
+        if vt_report and vt_report.is_malicious:
+            sources.append(f"VT {vt_report.detection_ratio}")
+        if sb_threat:
+            sources.append(f"Safe Browsing: {sb_threat}")
+        parts.append(f"{url} ({', '.join(sources)})")
     if len(flagged) > 3:
         parts.append(f"(+{len(flagged) - 3} more)")
 
     return Signal(
         name="url_reputation",
         points=points,
-        evidence="VirusTotal flagged: " + "; ".join(parts),
+        evidence="Flagged URL(s): " + "; ".join(parts),
     )

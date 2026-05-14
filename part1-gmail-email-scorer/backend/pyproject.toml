@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.14.1",
     "python-dotenv>=1.2.2",
     "requests>=2.34.0",
+    "slowapi>=0.1.9",
     "sqlmodel>=0.0.38",
     "uvicorn[standard]>=0.46.0",
 ]

@@ -81,6 +81,7 @@ async def extract_content_signals(
         response = await client.messages.create(
             model=MODEL,
             max_tokens=MAX_TOKENS,
+            temperature=0,
             system=_SYSTEM_PROMPT,
             tools=[tool],
             tool_choice={"type": "tool", "name": _TOOL_NAME},

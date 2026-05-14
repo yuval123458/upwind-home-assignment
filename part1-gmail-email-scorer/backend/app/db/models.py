@@ -34,3 +34,11 @@ class ScanHistory(SQLModel, table=True):
     band: str
     signals_json: str
     scanned_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class UserSettings(SQLModel, table=True):
+    __tablename__ = "user_settings"
+
+    user_id: int = Field(primary_key=True, foreign_key="users.id")
+    sensitivity: str = Field(default="medium")  # "low" | "medium" | "high"
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

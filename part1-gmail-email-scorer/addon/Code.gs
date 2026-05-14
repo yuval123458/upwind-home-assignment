@@ -21,6 +21,11 @@ function buildHomepageCard() {
             .setText('Manage blocklist')
             .setOnClickAction(CardService.newAction().setFunctionName('onShowBlocklist'))
         )
+        .addWidget(
+          CardService.newTextButton()
+            .setText('Settings')
+            .setOnClickAction(CardService.newAction().setFunctionName('onShowSettings'))
+        )
     )
     .build();
   return [card];
@@ -48,6 +53,11 @@ function buildScanCard(e) {
           CardService.newTextButton()
             .setText('Manage blocklist')
             .setOnClickAction(CardService.newAction().setFunctionName('onShowBlocklist'))
+        )
+        .addWidget(
+          CardService.newTextButton()
+            .setText('Settings')
+            .setOnClickAction(CardService.newAction().setFunctionName('onShowSettings'))
         )
     )
     .build();
@@ -118,6 +128,9 @@ function friendlySignalLabel(name) {
     llm_content: 'Content analysis',
     attachment_reputation: 'Malicious attachment(s)',
     blocklist: 'Sender on your blocklist',
+    reply_to_mismatch: 'Reply-To mismatch',
+    link_anchor_mismatch: 'Link text vs destination mismatch',
+    domain_age: 'Sender domain age',
   };
   return labels[name] || name;
 }
@@ -352,6 +365,81 @@ function onUnblockClicked(e) {
   }
 }
 
+function onShowSettings(e) {
+  return CardService.newActionResponseBuilder()
+    .setNavigation(CardService.newNavigation().pushCard(buildSettingsCard()))
+    .build();
+}
+
+function buildSettingsCard() {
+  let settings;
+  try {
+    settings = backendGetSettings();
+  } catch (err) {
+    return CardService.newCardBuilder()
+      .setHeader(CardService.newCardHeader().setTitle('Settings'))
+      .addSection(
+        CardService.newCardSection().addWidget(
+          CardService.newTextParagraph().setText('Error loading settings: ' + err.message)
+        )
+      )
+      .build();
+  }
+
+  const current = settings.sensitivity;
+  const descriptions = {
+    low: 'LOW — fewer flags; only strong evidence shifts the verdict.',
+    medium: 'MEDIUM — balanced default.',
+    high: 'HIGH — small signals can shift the band; more flags overall.',
+  };
+
+  const card = CardService.newCardBuilder().setHeader(
+    CardService.newCardHeader().setTitle('Settings').setSubtitle('Detection sensitivity')
+  );
+
+  const summary = CardService.newCardSection()
+    .addWidget(
+      CardService.newTextParagraph().setText(
+        'Current: <b>' + current.toUpperCase() + '</b>'
+      )
+    )
+    .addWidget(CardService.newTextParagraph().setText(descriptions[current] || ''));
+  card.addSection(summary);
+
+  const buttons = CardService.newCardSection().setHeader('Change sensitivity');
+  ['low', 'medium', 'high'].forEach(function (level) {
+    const label = level === current ? '✓ ' + level.toUpperCase() : level.toUpperCase();
+    buttons.addWidget(
+      CardService.newTextButton()
+        .setText(label)
+        .setOnClickAction(
+          CardService.newAction()
+            .setFunctionName('onSensitivityChanged')
+            .setParameters({ sensitivity: level })
+        )
+    );
+  });
+  card.addSection(buttons);
+
+  return card.build();
+}
+
+function onSensitivityChanged(e) {
+  try {
+    backendUpdateSettings(e.parameters.sensitivity);
+    return CardService.newActionResponseBuilder()
+      .setNotification(
+        CardService.newNotification().setText('Sensitivity set to ' + e.parameters.sensitivity)
+      )
+      .setNavigation(CardService.newNavigation().updateCard(buildSettingsCard()))
+      .build();
+  } catch (err) {
+    return CardService.newActionResponseBuilder()
+      .setNotification(CardService.newNotification().setText('Update failed: ' + err.message))
+      .build();
+  }
+}
+
 function sha256Hex(bytes) {
   const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, bytes);
   return digest
@@ -414,6 +502,32 @@ function backendAddBlocklist(senderEmail, filterId) {
   });
   if (response.getResponseCode() >= 300) {
     throw new Error('Backend add failed: ' + response.getContentText());
+  }
+  return JSON.parse(response.getContentText());
+}
+
+function backendGetSettings() {
+  const response = UrlFetchApp.fetch(BACKEND_URL + '/settings', {
+    method: 'get',
+    headers: backendHeaders(),
+    muteHttpExceptions: true,
+  });
+  if (response.getResponseCode() >= 300) {
+    throw new Error('Backend settings GET failed: ' + response.getContentText());
+  }
+  return JSON.parse(response.getContentText());
+}
+
+function backendUpdateSettings(sensitivity) {
+  const response = UrlFetchApp.fetch(BACKEND_URL + '/settings', {
+    method: 'patch',
+    contentType: 'application/json',
+    headers: backendHeaders(),
+    payload: JSON.stringify({ sensitivity: sensitivity }),
+    muteHttpExceptions: true,
+  });
+  if (response.getResponseCode() >= 300) {
+    throw new Error('Backend settings PATCH failed: ' + response.getContentText());
   }
   return JSON.parse(response.getContentText());
 }

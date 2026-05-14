@@ -39,10 +39,8 @@ async def get_domain_age_days(domain: str) -> int | None:
         return None
     reg_domain = _registrable(domain)
     if reg_domain in _age_cache:
-        print(f"        RDAP cache hit for {reg_domain}: {_age_cache[reg_domain]} days")
         return _age_cache[reg_domain]
 
-    print(f"        RDAP lookup: {reg_domain}")
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
             response = await client.get(f"https://rdap.org/domain/{reg_domain}")
@@ -52,7 +50,6 @@ async def get_domain_age_days(domain: str) -> int | None:
         return None
 
     if response.status_code != 200:
-        print(f"        RDAP returned {response.status_code} for {reg_domain}")
         _age_cache[reg_domain] = None
         return None
 
@@ -78,7 +75,6 @@ async def get_domain_age_days(domain: str) -> int | None:
             if registered.tzinfo is None:
                 registered = registered.replace(tzinfo=timezone.utc)
             age = (now - registered).days
-            print(f"        RDAP result for {reg_domain}: registered {event_date_str}, age={age} days")
             _age_cache[reg_domain] = age
             return age
 

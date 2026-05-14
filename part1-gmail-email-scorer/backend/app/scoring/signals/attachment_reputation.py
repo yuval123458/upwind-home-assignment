@@ -17,8 +17,8 @@ from app.enrichment.virustotal import VTReport
 from app.enrichment.virustotal import lookup_file_hash as vt_lookup
 from app.scoring.schemas import AttachmentMeta, Signal
 
-_MAX_POINTS = 25
-_POINTS_PER_FLAGGED = 15
+_MAX_POINTS = 30
+_POINTS_PER_FLAGGED = 20
 
 
 async def compute(attachments: list[AttachmentMeta]) -> Signal | None:

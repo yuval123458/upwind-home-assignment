@@ -50,16 +50,12 @@ class VTReport(BaseModel):
 async def lookup_url(url: str) -> VTReport | None:
     """Look up a URL against VirusTotal. Returns None if no data or not configured."""
     if not settings.virustotal_api_key:
-        print(f"        VT skipped (no API key) for {url}")
         return None
     if url in _url_cache:
-        print(f"        VT cache hit for {url}: {_url_cache[url]}")
         return _url_cache[url]
 
-    print(f"        VT lookup_url: {url}")
     url_id = base64.urlsafe_b64encode(url.encode()).decode().rstrip("=")
     result = await _get(f"/urls/{url_id}")
-    print(f"        VT result for {url}: {result}")
     _url_cache[url] = result
     return result
 
@@ -67,16 +63,12 @@ async def lookup_url(url: str) -> VTReport | None:
 async def lookup_file_hash(sha256: str) -> VTReport | None:
     """Look up a file SHA-256 hash against VirusTotal."""
     if not settings.virustotal_api_key:
-        print(f"        VT skipped (no API key) for hash {sha256}")
         return None
     sha256 = sha256.lower()
     if sha256 in _hash_cache:
-        print(f"        VT cache hit for hash {sha256}: {_hash_cache[sha256]}")
         return _hash_cache[sha256]
 
-    print(f"        VT lookup_file_hash: {sha256}")
     result = await _get(f"/files/{sha256}")
-    print(f"        VT result for hash {sha256}: {result}")
     _hash_cache[sha256] = result
     return result
 

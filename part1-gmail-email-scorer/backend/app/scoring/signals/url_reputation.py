@@ -19,7 +19,7 @@ from app.scoring.schemas import Signal
 _URL_REGEX = re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE)
 _TRAILING_PUNCT = ".,;:!?)\"'"
 _MAX_URLS = 5
-_MAX_POINTS = 20
+_MAX_POINTS = 25
 
 
 def extract_urls(*texts: str | None) -> list[str]:
@@ -40,7 +40,6 @@ def extract_urls(*texts: str | None) -> list[str]:
 
 async def compute(body_html: str | None, body_plain: str | None) -> Signal | None:
     urls = extract_urls(body_html, body_plain)
-    print(f"    url_reputation: extracted {len(urls)} URL(s): {urls}")
     if not urls:
         return None
 
@@ -59,7 +58,7 @@ async def compute(body_html: str | None, body_plain: str | None) -> Signal | Non
     if not flagged:
         return None
 
-    points = min(_MAX_POINTS, len(flagged) * 10)
+    points = min(_MAX_POINTS, len(flagged) * 15)
     parts: list[str] = []
     for url, vt_report, sb_threat in flagged[:3]:
         sources: list[str] = []

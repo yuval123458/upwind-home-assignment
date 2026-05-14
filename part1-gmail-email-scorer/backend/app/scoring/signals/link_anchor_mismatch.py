@@ -15,8 +15,8 @@ from urllib.parse import urlparse
 
 from app.scoring.schemas import Signal
 
-MAX_POINTS = 15
-POINTS_PER_MISMATCH = 7
+MAX_POINTS = 20
+POINTS_PER_MISMATCH = 10
 
 _URL_LIKE_PATTERN = re.compile(
     r"(?:https?://|www\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z]{2,})+",

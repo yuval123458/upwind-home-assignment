@@ -33,8 +33,6 @@ async def lookup_urls(urls: list[str]) -> dict[str, str]:
     """Look up multiple URLs in one request. Returns {url: threat_type} for
     matches only. Caches per-URL for 24h."""
     if not settings.safe_browsing_api_key or not urls:
-        if not settings.safe_browsing_api_key:
-            print("        Safe Browsing skipped (no API key)")
         return {}
 
     # Split between cached and uncached.
@@ -45,7 +43,6 @@ async def lookup_urls(urls: list[str]) -> dict[str, str]:
             cached = _url_cache[url]
             if cached:
                 flagged[url] = cached
-                print(f"        SB cache hit for {url}: {cached}")
         else:
             to_query.append(url)
 
@@ -67,7 +64,6 @@ async def lookup_urls(urls: list[str]) -> dict[str, str]:
         },
     }
 
-    print(f"        SB lookup_urls: {len(to_query)} URL(s)")
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
             response = await client.post(
@@ -106,6 +102,4 @@ async def lookup_urls(urls: list[str]) -> dict[str, str]:
         if url not in matched_urls:
             _url_cache[url] = None
 
-    if matches:
-        print(f"        SB result: {len(matches)} flagged out of {len(to_query)}")
     return flagged

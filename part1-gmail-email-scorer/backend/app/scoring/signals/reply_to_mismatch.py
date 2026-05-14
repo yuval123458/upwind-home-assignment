@@ -12,7 +12,7 @@ import re
 
 from app.scoring.schemas import Signal
 
-MAX_POINTS = 10
+MAX_POINTS = 15
 
 _EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 

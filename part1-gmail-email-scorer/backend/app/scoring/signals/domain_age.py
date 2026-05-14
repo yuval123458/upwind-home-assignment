@@ -14,8 +14,8 @@ from app.scoring.schemas import Signal
 
 VERY_YOUNG_DAYS = 7
 YOUNG_DAYS = 30
-POINTS_VERY_YOUNG = 15
-POINTS_YOUNG = 8
+POINTS_VERY_YOUNG = 25
+POINTS_YOUNG = 15
 
 _EMAIL_PATTERN = re.compile(r"[\w.+-]+@([\w-]+\.[\w.-]+)")
 

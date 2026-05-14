@@ -52,16 +52,12 @@ class HybridReport(BaseModel):
 
 async def lookup_file_hash(sha256: str) -> HybridReport | None:
     if not settings.hybrid_analysis_api_key:
-        print(f"        HA skipped (no API key) for hash {sha256}")
         return None
     sha256 = sha256.lower()
     if sha256 in _hash_cache:
-        print(f"        HA cache hit for hash {sha256}: {_hash_cache[sha256]}")
         return _hash_cache[sha256]
 
-    print(f"        HA lookup_file_hash: {sha256}")
     result = await _post_hash(sha256)
-    print(f"        HA result for hash {sha256}: {result}")
     _hash_cache[sha256] = result
     return result
 

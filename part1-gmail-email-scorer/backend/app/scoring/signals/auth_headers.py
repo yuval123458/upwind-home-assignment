@@ -9,8 +9,8 @@ import re
 
 from app.scoring.schemas import Signal
 
-MAX_POINTS = 25
-PER_FAIL_POINTS = 9
+MAX_POINTS = 30
+PER_FAIL_POINTS = 15
 FAIL_RESULTS = {"fail", "softfail", "permerror"}
 STRICT_DMARC_POLICIES = {"reject", "quarantine"}
 

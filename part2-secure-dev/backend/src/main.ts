@@ -21,6 +21,7 @@ await app.register(cookie);
 await app.register(cors, {
   origin: FRONTEND_ORIGIN,
   credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
 });
 
 // Rate limiter is registered globally but disabled-by-default; routes opt in

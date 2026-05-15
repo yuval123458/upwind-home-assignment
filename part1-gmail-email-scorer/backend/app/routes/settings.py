@@ -37,15 +37,19 @@ def get_sensitivity(user_id: int, session: Session) -> Sensitivity:
 def thresholds_for(sensitivity: Sensitivity) -> tuple[int, int]:
     """Return (suspicious_min, malicious_min) thresholds for a sensitivity level.
 
-    - low: 40 / 70 — fewer flags, only strong evidence pushes a band change
-    - medium: 30 / 60 — default
-    - high: 20 / 50 — more sensitive, smaller signals can shift band
+    Bands were shifted after calibration: the values previously labelled "high"
+    are the calibrated defaults, so they now sit at medium. Low is the old
+    medium (conservative), high is new and more aggressive than anything before.
+
+    - low: 30 / 60 — fewer flags, only strong evidence pushes a band change
+    - medium: 20 / 50 — default; matches the calibrated detection numbers in the README
+    - high: 10 / 40 — more sensitive, single-signal evidence can shift the band
     """
     if sensitivity == "low":
-        return 40, 70
+        return 30, 60
     if sensitivity == "high":
-        return 20, 50
-    return 30, 60
+        return 10, 40
+    return 20, 50
 
 
 @router.get("", response_model=SettingsOut)

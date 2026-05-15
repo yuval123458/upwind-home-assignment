@@ -17,7 +17,6 @@ from app.scoring.signals import (
     domain_age,
     link_anchor_mismatch,
     llm_content,
-    reply_to_mismatch,
     url_reputation,
 )
 
@@ -51,10 +50,6 @@ async def score(
     auth_signal = auth_headers.compute(req.authentication_results)
     if auth_signal is not None:
         signals.append(auth_signal)
-
-    reply_to_signal = reply_to_mismatch.compute(req.sender, req.reply_to)
-    if reply_to_signal is not None:
-        signals.append(reply_to_signal)
 
     link_signal = link_anchor_mismatch.compute(req.body_html)
     if link_signal is not None:

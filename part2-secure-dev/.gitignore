@@ -9,3 +9,8 @@ coverage/
 .vite/
 .tsbuildinfo
 *.tsbuildinfo
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3

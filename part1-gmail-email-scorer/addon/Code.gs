@@ -128,7 +128,6 @@ function friendlySignalLabel(name) {
     llm_content: 'Content analysis',
     attachment_reputation: 'Malicious attachment(s)',
     blocklist: 'Sender on your blocklist',
-    reply_to_mismatch: 'Reply-To mismatch',
     link_anchor_mismatch: 'Link text vs destination mismatch',
     domain_age: 'Sender domain age',
   };

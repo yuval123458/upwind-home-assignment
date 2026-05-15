@@ -2,6 +2,16 @@
 
 A small full-stack app for an analyst portal that displays security events and lets admins manage user accounts. This is the implementation that follows the threat model at `../threat-model.md`. The repo is an npm workspaces monorepo with three packages: `frontend` (React + Vite + TypeScript), `backend` (Fastify + TypeScript on SQLite), and `shared` (Zod schemas reused by both sides).
 
+## Design notes
+
+A couple of decisions about how the project is laid out matter more than they look, and they point in the same direction.
+
+The repo is a TypeScript-everywhere npm workspaces monorepo with three packages. The important one is `shared`. It exports the Zod schemas that describe every request and response shape — `LoginSchema`, `CreateUserSchema`, `UpdateUserSchema`, `SecurityEventSchema`, and so on — and both the frontend and the backend import those same schemas. The frontend uses them for form validation and TypeScript types; the backend uses them for request-body validation on every protected route. There is one source of truth for what a valid payload looks like, and it lives in one place. For a security-oriented app where the request contract is part of the threat model (the mass-assignment defense in particular lives in those `.strict()` schemas — they reject any field not on the allow-list, so a regular user cannot send `role: "admin"` and slip it past), keeping the validation layer in one shared package is the simplest way to make sure the client and the server never disagree about what is acceptable.
+
+I deliberately did not use JWT for sessions. JWT is the default reach for "I need to know who is calling," but for this application it carries a real footgun: a JWT is a signed payload the client holds, and revocation is hard — once issued, it is valid until it expires, and "kill this user's sessions right now" requires building a denylist that defeats most of the point of going stateless in the first place. The portal has a real need to revoke immediately — when an admin disables a user, that user must be unable to make another authenticated request. So I chose opaque server-side session tokens instead. On login the server generates 256 random bits, stores the SHA-256 hash of that token in the `sessions` table (so a database dump does not yield usable tokens), and sets the raw token as an HttpOnly, SameSite=Strict cookie on the response. Every protected request then performs a quick DB lookup to validate the cookie. The extra DB read per request is the cost I accept; what I get is instant revocation, no token-decoding magic on the client, and a server-controlled definition of "who is logged in." At single-instance scale this is fine; at scale it needs to be rethought, which the production-deployment section below addresses.
+
+Both decisions push the same way: every authority statement — "this payload is valid," "this user is logged in" — lives on the server. The frontend is never trusted to claim anything on its own. That is what makes the same React UI safe to ship without changing the security posture, even though the starter version of the frontend had several places where it would have lied to itself about both questions.
+
 ## How to run the project
 
 Requirements: Node 20 or newer (developed on 24), npm 10 or newer. Nothing else — SQLite is embedded.
@@ -30,7 +40,7 @@ From the `part2-secure-dev` directory:
    - `analyst-a@penguwave.local` / `password1` (regular user)
    - `analyst-b@penguwave.local` / `password2` (regular user)
 
-Delete `backend/penguwave.db` to reset to a clean state — the seed runs again on next startup.
+Delete `backend/penguwave.db*` to reset to a clean state — the seed runs again on next startup. The glob catches the SQLite file plus its `-shm` and `-wal` sidecars from WAL mode; deleting only `.db` and leaving the sidecars produces inconsistent state on next startup.
 
 ## How authentication works
 
